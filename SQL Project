@@ -1,0 +1,925 @@
+/* ============================================================
+   ONLINE STORE - MINI E-COMMERCE PROJECT
+   ============================================================ */
+
+
+/* ============================================================
+   1. CREATE DATABASE
+   ============================================================ */
+
+CREATE DATABASE IF NOT EXISTS online_store;
+USE online_store;
+
+
+/* ============================================================
+   2. DROP OLD TABLES IF THEY EXIST
+   This allows you to run the project again from the beginning.
+   ============================================================ */
+
+DROP VIEW IF EXISTS best_selling_products;
+DROP VIEW IF EXISTS customer_total_spending;
+DROP VIEW IF EXISTS order_item_details;
+DROP VIEW IF EXISTS product_category_details;
+DROP VIEW IF EXISTS customer_orders;
+
+DROP PROCEDURE IF EXISTS add_customer;
+DROP PROCEDURE IF EXISTS update_product_price;
+DROP PROCEDURE IF EXISTS customer_orders_list;
+DROP PROCEDURE IF EXISTS total_sales;
+DROP PROCEDURE IF EXISTS products_by_category;
+
+DROP TABLE IF EXISTS Order_Items;
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS Products;
+DROP TABLE IF EXISTS Categories;
+DROP TABLE IF EXISTS Customers;
+
+
+/* ============================================================
+   3. CREATE TABLES
+   ============================================================ */
+
+
+/* CUSTOMERS */
+
+CREATE TABLE Customers (
+    customer_id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(15),
+    city VARCHAR(255),
+    registration_date DATE
+);
+
+
+/* CATEGORIES */
+
+CREATE TABLE Categories (
+    category_id INT PRIMARY KEY,
+    category_name VARCHAR(100) NOT NULL,
+    description VARCHAR(255)
+);
+
+
+/* PRODUCTS */
+
+CREATE TABLE Products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    price DECIMAL(10,2),
+    stock_quantity INT,
+    category_id INT,
+    added_date DATE,
+    FOREIGN KEY (category_id)
+        REFERENCES Categories(category_id)
+);
+
+
+/* ORDERS */
+
+CREATE TABLE Orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    order_date DATE,
+    total_amount DECIMAL(10,2),
+    status VARCHAR(20),
+    FOREIGN KEY (customer_id)
+        REFERENCES Customers(customer_id)
+);
+
+
+/* ORDER ITEMS */
+
+CREATE TABLE Order_Items (
+    order_item_id INT PRIMARY KEY,
+    order_id INT,
+    product_id INT,
+    quantity INT,
+    price DECIMAL(10,2),
+    subtotal DECIMAL(10,2),
+    FOREIGN KEY (order_id)
+        REFERENCES Orders(order_id),
+    FOREIGN KEY (product_id)
+        REFERENCES Products(product_id)
+);
+
+
+/* ============================================================
+   4. INSERT SAMPLE DATA
+   ============================================================ */
+
+
+/* CATEGORIES */
+
+INSERT INTO Categories
+(category_id, category_name, description)
+VALUES
+(1, 'Electronics', 'Electronic devices and accessories'),
+(2, 'Clothing', 'Men and women clothing'),
+(3, 'Books', 'Educational and entertainment books'),
+(4, 'Home Appliances', 'Home and kitchen appliances'),
+(5, 'Sports', 'Sports and fitness products');
+
+
+/* CUSTOMERS */
+
+INSERT INTO Customers
+(customer_id, name, email, phone, city, registration_date)
+VALUES
+(101, 'Manikanta', 'manikanta@gmail.com', '9876543210', 'Hyderabad', '2024-01-15'),
+(102, 'Rahul', 'rahul@gmail.com', '9876543211', 'Bangalore', '2024-02-20'),
+(103, 'Priya', 'priya@gmail.com', '9876543212', 'Hyderabad', '2024-03-10'),
+(104, 'Sneha', 'sneha@gmail.com', '9876543213', 'Chennai', '2024-04-12'),
+(105, 'Arjun', 'arjun@gmail.com', '9876543214', 'Mumbai', '2024-05-18'),
+(106, 'Kiran', 'kiran@gmail.com', '9876543215', 'Hyderabad', '2024-06-25'),
+(107, 'Anjali', 'anjali@gmail.com', '9876543216', 'Pune', '2024-07-05'),
+(108, 'Vijay', 'vijay@gmail.com', '9876543217', 'Delhi', '2024-08-15');
+
+
+/* PRODUCTS */
+
+INSERT INTO Products
+(product_id, product_name, price, stock_quantity, category_id, added_date)
+VALUES
+(201, 'Laptop', 65000.00, 20, 1, '2024-01-10'),
+(202, 'Smartphone', 30000.00, 35, 1, '2024-02-15'),
+(203, 'Headphones', 2500.00, 50, 1, '2025-01-20'),
+(204, 'Keyboard', 1500.00, 40, 1, '2025-03-12'),
+(205, 'T-Shirt', 800.00, 100, 2, '2024-06-10'),
+(206, 'Jeans', 1800.00, 60, 2, '2025-02-10'),
+(207, 'Python Book', 1200.00, 30, 3, '2024-08-20'),
+(208, 'SQL Book', 900.00, 25, 3, '2025-01-05'),
+(209, 'Microwave Oven', 12000.00, 15, 4, '2024-11-15'),
+(210, 'Football', 1200.00, 45, 5, '2025-04-10');
+
+
+/* ORDERS */
+
+INSERT INTO Orders
+(order_id, customer_id, order_date, total_amount, status)
+VALUES
+(301, 101, '2025-01-10', 67500.00, 'Completed'),
+(302, 102, '2025-02-15', 30000.00, 'Completed'),
+(303, 103, '2025-03-20', 4500.00, 'Completed'),
+(304, 101, '2025-04-05', 12900.00, 'Completed'),
+(305, 104, '2025-05-10', 1800.00, 'Cancelled'),
+(306, 105, '2025-06-15', 12000.00, 'Completed'),
+(307, 106, '2025-07-20', 2500.00, 'Completed'),
+(308, 103, '2025-08-25', 2000.00, 'Completed');
+
+
+/* ORDER ITEMS */
+
+INSERT INTO Order_Items
+(order_item_id, order_id, product_id, quantity, price, subtotal)
+VALUES
+(401, 301, 201, 1, 65000.00, 65000.00),
+(402, 301, 203, 1, 2500.00, 2500.00),
+
+(403, 302, 202, 1, 30000.00, 30000.00),
+
+(404, 303, 205, 1, 800.00, 800.00),
+(405, 303, 207, 1, 1200.00, 1200.00),
+(406, 303, 203, 1, 2500.00, 2500.00),
+
+(407, 304, 209, 1, 12000.00, 12000.00),
+(408, 304, 208, 1, 900.00, 900.00),
+
+(409, 305, 206, 1, 1800.00, 1800.00),
+
+(410, 306, 209, 1, 12000.00, 12000.00),
+
+(411, 307, 203, 1, 2500.00, 2500.00),
+
+(412, 308, 205, 1, 800.00, 800.00),
+(413, 308, 210, 1, 1200.00, 1200.00);
+
+
+/* ============================================================
+   5. BASIC QUERIES
+   ============================================================ */
+
+
+/* 1. Display products with price greater than 1000 */
+
+SELECT *
+FROM Products
+WHERE price > 1000;
+
+
+/* 2. Show all customers from Hyderabad */
+
+SELECT *
+FROM Customers
+WHERE city = 'Hyderabad';
+
+
+/* 3. List products belonging to Electronics category */
+
+SELECT p.*
+FROM Products p
+JOIN Categories c
+ON p.category_id = c.category_id
+WHERE c.category_name = 'Electronics';
+
+
+/* 4. Display products added after 2024 */
+
+SELECT *
+FROM Products
+WHERE added_date >= '2025-01-01';
+
+
+/* ============================================================
+   6. JOINS
+   ============================================================ */
+
+
+/* 1. Show customer name with their orders */
+
+SELECT
+    c.name,
+    o.order_id,
+    o.order_date,
+    o.total_amount,
+    o.status
+FROM Customers c
+JOIN Orders o
+ON c.customer_id = o.customer_id;
+
+
+/* 2. Display product name with order quantity */
+
+SELECT
+    p.product_name,
+    oi.quantity
+FROM Products p
+JOIN Order_Items oi
+ON p.product_id = oi.product_id;
+
+
+/* 3. Show order details with customer information */
+
+SELECT
+    o.order_id,
+    c.name,
+    c.email,
+    o.order_date,
+    o.total_amount,
+    o.status
+FROM Orders o
+JOIN Customers c
+ON o.customer_id = c.customer_id;
+
+
+/* 4. List products with category name */
+
+SELECT
+    p.product_id,
+    p.product_name,
+    p.price,
+    c.category_name
+FROM Products p
+JOIN Categories c
+ON p.category_id = c.category_id;
+
+
+/* 5. Show customers with products they purchased */
+
+SELECT
+    c.name AS customer_name,
+    p.product_name,
+    oi.quantity,
+    oi.subtotal
+FROM Customers c
+JOIN Orders o
+ON c.customer_id = o.customer_id
+JOIN Order_Items oi
+ON o.order_id = oi.order_id
+JOIN Products p
+ON oi.product_id = p.product_id;
+
+
+/* ============================================================
+   7. AGGREGATE FUNCTIONS
+   ============================================================ */
+
+
+/* 1. Count total number of products */
+
+SELECT COUNT(*) AS total_products
+FROM Products;
+
+
+/* 2. Find average product price */
+
+SELECT AVG(price) AS average_price
+FROM Products;
+
+
+/* 3. Calculate total sales amount */
+
+SELECT SUM(total_amount) AS total_sales
+FROM Orders
+WHERE status = 'Completed';
+
+
+/* 4. Count total orders placed */
+
+SELECT COUNT(*) AS total_orders
+FROM Orders;
+
+
+/* 5. Find highest priced product */
+
+SELECT *
+FROM Products
+WHERE price = (
+    SELECT MAX(price)
+    FROM Products
+);
+
+
+/* ============================================================
+   8. SUBQUERIES
+   ============================================================ */
+
+
+/* 1. Find customers who never placed orders */
+
+SELECT *
+FROM Customers
+WHERE customer_id NOT IN (
+    SELECT customer_id
+    FROM Orders
+);
+
+
+/* 2. Find products never ordered */
+
+SELECT *
+FROM Products
+WHERE product_id NOT IN (
+    SELECT product_id
+    FROM Order_Items
+);
+
+
+/* 3. Products with price greater than average price */
+
+SELECT *
+FROM Products
+WHERE price > (
+    SELECT AVG(price)
+    FROM Products
+);
+
+
+/* 4. Customers who spent more than average spending */
+
+SELECT
+    c.customer_id,
+    c.name,
+    SUM(o.total_amount) AS total_spending
+FROM Customers c
+JOIN Orders o
+ON c.customer_id = o.customer_id
+WHERE o.status = 'Completed'
+GROUP BY c.customer_id, c.name
+HAVING SUM(o.total_amount) > (
+    SELECT AVG(customer_total)
+    FROM (
+        SELECT
+            SUM(total_amount) AS customer_total
+        FROM Orders
+        WHERE status = 'Completed'
+        GROUP BY customer_id
+    ) AS temp
+);
+
+
+/* 5. Orders above average total amount */
+
+SELECT *
+FROM Orders
+WHERE total_amount > (
+    SELECT AVG(total_amount)
+    FROM Orders
+);
+
+
+/* ============================================================
+   9. UPDATES
+   ============================================================ */
+
+
+/* 1. Update product price */
+
+UPDATE Products
+SET price = 68000
+WHERE product_id = 201;
+
+
+/* 2. Change customer email */
+
+UPDATE Customers
+SET email = 'manikanta_new@gmail.com'
+WHERE customer_id = 101;
+
+
+/* 3. Update product category */
+
+UPDATE Products
+SET category_id = 5
+WHERE product_id = 210;
+
+
+/* ============================================================
+   10. DELETES
+   ============================================================ */
+
+
+/*
+   Delete cancelled order items first because of foreign key.
+*/
+
+DELETE FROM Order_Items
+WHERE order_id IN (
+    SELECT order_id
+    FROM (
+        SELECT order_id
+        FROM Orders
+        WHERE status = 'Cancelled'
+    ) AS cancelled_orders
+);
+
+
+/* Delete cancelled orders */
+
+DELETE FROM Orders
+WHERE status = 'Cancelled';
+
+
+/*
+   Delete customers with no orders.
+*/
+
+DELETE FROM Customers
+WHERE customer_id NOT IN (
+    SELECT customer_id
+    FROM Orders
+);
+
+
+/* ============================================================
+   11. VIEWS
+   ============================================================ */
+
+
+/* 1. View to display customer orders */
+
+CREATE VIEW customer_orders AS
+SELECT
+    c.customer_id,
+    c.name,
+    o.order_id,
+    o.order_date,
+    o.total_amount,
+    o.status
+FROM Customers c
+JOIN Orders o
+ON c.customer_id = o.customer_id;
+
+
+/* Check view */
+
+SELECT * FROM customer_orders;
+
+
+/* 2. Product details with category */
+
+CREATE VIEW product_category_details AS
+SELECT
+    p.product_id,
+    p.product_name,
+    p.price,
+    p.stock_quantity,
+    c.category_name
+FROM Products p
+JOIN Categories c
+ON p.category_id = c.category_id;
+
+
+/* Check view */
+
+SELECT * FROM product_category_details;
+
+
+/* 3. Order item details */
+
+CREATE VIEW order_item_details AS
+SELECT
+    oi.order_item_id,
+    oi.order_id,
+    p.product_name,
+    oi.quantity,
+    oi.price,
+    oi.subtotal
+FROM Order_Items oi
+JOIN Products p
+ON oi.product_id = p.product_id;
+
+
+/* Check view */
+
+SELECT * FROM order_item_details;
+
+
+/* 4. Total spending by each customer */
+
+CREATE VIEW customer_total_spending AS
+SELECT
+    c.customer_id,
+    c.name,
+    COALESCE(
+        SUM(
+            CASE
+                WHEN o.status = 'Completed'
+                THEN o.total_amount
+                ELSE 0
+            END
+        ), 0
+    ) AS total_spending
+FROM Customers c
+LEFT JOIN Orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.name;
+
+
+/* Check view */
+
+SELECT * FROM customer_total_spending;
+
+
+/* 5. Best-selling products */
+
+CREATE VIEW best_selling_products AS
+SELECT
+    p.product_id,
+    p.product_name,
+    SUM(oi.quantity) AS total_quantity_sold
+FROM Products p
+JOIN Order_Items oi
+ON p.product_id = oi.product_id
+JOIN Orders o
+ON oi.order_id = o.order_id
+WHERE o.status = 'Completed'
+GROUP BY p.product_id, p.product_name;
+
+
+/* Check view */
+
+SELECT *
+FROM best_selling_products
+ORDER BY total_quantity_sold DESC;
+
+
+/* ============================================================
+   12. STORED PROCEDURES
+   ============================================================ */
+
+DELIMITER //
+
+
+/* ------------------------------------------------------------
+   1. Procedure to insert a new customer
+   ------------------------------------------------------------ */
+
+CREATE PROCEDURE add_customer(
+    IN p_customer_id INT,
+    IN p_name VARCHAR(100),
+    IN p_email VARCHAR(100),
+    IN p_phone VARCHAR(15),
+    IN p_city VARCHAR(255),
+    IN p_registration_date DATE
+)
+BEGIN
+    INSERT INTO Customers
+    (
+        customer_id,
+        name,
+        email,
+        phone,
+        city,
+        registration_date
+    )
+    VALUES
+    (
+        p_customer_id,
+        p_name,
+        p_email,
+        p_phone,
+        p_city,
+        p_registration_date
+    );
+END //
+
+
+/* ------------------------------------------------------------
+   2. Procedure to update product price
+   ------------------------------------------------------------ */
+
+CREATE PROCEDURE update_product_price(
+    IN p_product_id INT,
+    IN p_new_price DECIMAL(10,2)
+)
+BEGIN
+    UPDATE Products
+    SET price = p_new_price
+    WHERE product_id = p_product_id;
+END //
+
+
+/* ------------------------------------------------------------
+   3. Procedure to display all orders of a customer
+   ------------------------------------------------------------ */
+
+CREATE PROCEDURE customer_orders_list(
+    IN p_customer_id INT
+)
+BEGIN
+    SELECT
+        order_id,
+        order_date,
+        total_amount,
+        status
+    FROM Orders
+    WHERE customer_id = p_customer_id;
+END //
+
+
+/* ------------------------------------------------------------
+   4. Procedure to calculate total sales
+   ------------------------------------------------------------ */
+
+CREATE PROCEDURE total_sales()
+BEGIN
+    SELECT
+        SUM(total_amount) AS total_sales
+    FROM Orders
+    WHERE status = 'Completed';
+END //
+
+
+/* ------------------------------------------------------------
+   5. Procedure to list products in a category
+   ------------------------------------------------------------ */
+
+CREATE PROCEDURE products_by_category(
+    IN p_category_id INT
+)
+BEGIN
+    SELECT
+        product_id,
+        product_name,
+        price,
+        stock_quantity,
+        added_date
+    FROM Products
+    WHERE category_id = p_category_id;
+END //
+
+
+/* End of procedures */
+
+DELIMITER ;
+
+
+/* ============================================================
+   13. TEST STORED PROCEDURES
+   ============================================================ */
+
+
+/* 1. Add customer */
+
+CALL add_customer(
+    109,
+    'Rambabu',
+    'rambabu@gmail.com',
+    '9876543218',
+    'Hyderabad',
+    '2026-09-21'
+);
+
+
+/* Check customer */
+
+SELECT *
+FROM Customers
+WHERE customer_id = 109;
+
+
+/* 2. Update product price */
+
+CALL update_product_price(201, 65000);
+
+
+/* Check product */
+
+SELECT *
+FROM Products
+WHERE product_id = 201;
+
+
+/* 3. Display customer orders */
+
+CALL customer_orders_list(101);
+
+
+/* 4. Calculate total sales */
+
+CALL total_sales();
+
+
+/* 5. Display products in Electronics */
+
+CALL products_by_category(1);
+
+
+/* ============================================================
+   14. REPORTS / ANALYSIS
+   ============================================================ */
+
+
+/* 1. TOP 5 BEST SELLING PRODUCTS */
+
+SELECT
+    p.product_id,
+    p.product_name,
+    SUM(oi.quantity) AS total_quantity_sold
+FROM Products p
+JOIN Order_Items oi
+ON p.product_id = oi.product_id
+JOIN Orders o
+ON oi.order_id = o.order_id
+WHERE o.status = 'Completed'
+GROUP BY p.product_id, p.product_name
+ORDER BY total_quantity_sold DESC
+LIMIT 5;
+
+
+/* 2. MOST FREQUENT CUSTOMERS */
+
+SELECT
+    c.customer_id,
+    c.name,
+    COUNT(o.order_id) AS total_orders
+FROM Customers c
+JOIN Orders o
+ON c.customer_id = o.customer_id
+WHERE o.status = 'Completed'
+GROUP BY c.customer_id, c.name
+ORDER BY total_orders DESC;
+
+
+/* 3. MONTHLY SALES REPORT */
+
+SELECT
+    YEAR(order_date) AS year,
+    MONTH(order_date) AS month,
+    SUM(total_amount) AS monthly_sales
+FROM Orders
+WHERE status = 'Completed'
+GROUP BY YEAR(order_date), MONTH(order_date)
+ORDER BY year, month;
+
+
+/* Monthly report with month name */
+
+SELECT
+    YEAR(order_date) AS year,
+    MONTHNAME(order_date) AS month,
+    SUM(total_amount) AS monthly_sales
+FROM Orders
+WHERE status = 'Completed'
+GROUP BY YEAR(order_date), MONTH(order_date)
+ORDER BY year, MONTH(order_date);
+
+
+/* 4. CATEGORY GENERATING HIGHEST REVENUE */
+
+SELECT
+    c.category_id,
+    c.category_name,
+    SUM(oi.subtotal) AS revenue
+FROM Categories c
+JOIN Products p
+ON c.category_id = p.category_id
+JOIN Order_Items oi
+ON p.product_id = oi.product_id
+JOIN Orders o
+ON oi.order_id = o.order_id
+WHERE o.status = 'Completed'
+GROUP BY c.category_id, c.category_name
+ORDER BY revenue DESC
+LIMIT 1;
+
+
+/* 5. CUSTOMER SPENDING ANALYSIS */
+
+SELECT
+    c.customer_id,
+    c.name,
+    COUNT(o.order_id) AS total_orders,
+    COALESCE(
+        SUM(
+            CASE
+                WHEN o.status = 'Completed'
+                THEN o.total_amount
+                ELSE 0
+            END
+        ), 0
+    ) AS total_spending,
+    COALESCE(
+        AVG(
+            CASE
+                WHEN o.status = 'Completed'
+                THEN o.total_amount
+            END
+        ), 0
+    ) AS average_order_value
+FROM Customers c
+LEFT JOIN Orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.name
+ORDER BY total_spending DESC;
+
+
+/* ============================================================
+   15. EXTRA PRACTICE QUERIES
+   ============================================================ */
+
+
+/* Low stock products */
+
+SELECT *
+FROM Products
+WHERE stock_quantity < 30;
+
+
+/* Completed orders */
+
+SELECT *
+FROM Orders
+WHERE status = 'Completed';
+
+
+/* Cancelled orders */
+
+SELECT *
+FROM Orders
+WHERE status = 'Cancelled';
+
+
+/* Customer order count */
+
+SELECT
+    c.name,
+    COUNT(o.order_id) AS order_count
+FROM Customers c
+LEFT JOIN Orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.name;
+
+
+/* Revenue by category */
+
+SELECT
+    c.category_name,
+    SUM(oi.subtotal) AS revenue
+FROM Categories c
+JOIN Products p
+ON c.category_id = p.category_id
+JOIN Order_Items oi
+ON p.product_id = oi.product_id
+JOIN Orders o
+ON oi.order_id = o.order_id
+WHERE o.status = 'Completed'
+GROUP BY c.category_id, c.category_name
+ORDER BY revenue DESC;
+
+
+/* Products never purchased */
+
+SELECT
+    p.product_id,
+    p.product_name
+FROM Products p
+LEFT JOIN Order_Items oi
+ON p.product_id = oi.product_id
+WHERE oi.product_id IS NULL;
+
+
+/* ============================================================
+   END OF ONLINE STORE MINI E-COMMERCE PROJECT
+   ============================================================ */
